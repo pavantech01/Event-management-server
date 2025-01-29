@@ -38,12 +38,36 @@ const eventController = {
         res.status(200).json(event);
     }),
 
+    // updateEvent: catchAsync(async (req, res) => {
+    //     if (req.user.role !== 'admin') {
+    //         throw new ApiError(403, 'Access denied. Admins only.');
+    //     }
+    //     const event = await eventService.updateEvent(req.params.id, req.body, req.user.id);
+    //     res.status(200).json(event);
+    // }),
+
     updateEvent: catchAsync(async (req, res) => {
+        const { id } = req.params;
+        const userId = req.user.id;
+    
+        console.log('Update Request Details:', {
+            eventId: id,
+            userId: userId,
+            body: req.body,
+            userRole: req.user.role
+        });
+    
         if (req.user.role !== 'admin') {
-            throw new ApiError(403, 'Access denied. Admins only.');
+            throw new ApiError(403, 'Admin access required');
         }
-        const event = await eventService.updateEvent(req.params.id, req.body, req.user.id);
-        res.status(200).json(event);
+    
+        const event = await eventService.updateEvent(id, req.body, userId);
+        
+        res.status(200).json({
+            success: true,
+            message: 'Event updated successfully',
+            data: event
+        });
     }),
 
     deleteEvent: catchAsync(async (req, res) => {

@@ -1,26 +1,21 @@
 const razorpay = require('../config/razorpay.config');
 const { Payment } = require('../models/payment.model');
-const { Event } = require('../models/event.model');
+const crypto = require('crypto');
 const { ApiError } = require('../utils/apiError');
 
 const paymentService = {
-    async createOrder(eventId, amount, userId) {
-        const event = await Event.findById(eventId);
-        if (!event) {
-            throw new ApiError(404, 'Event not found');
-        }
-
+    async createOrder(eventId, amount, userId, address) { // Add address parameter
         const order = await razorpay.orders.create({
-            amount: amount * 100, // Convert to paisa
+            amount: amount * 100, // Amount in paisa
             currency: 'INR',
-            receipt: `receipt_${Date.now()}`
+            receipt: `receipt_${Date.now()}`,
+            notes: { address }, // Store address in notes if needed
         });
 
         return order;
     },
 
     async verifyPayment(orderId, paymentId, signature) {
-        const crypto = require('crypto');
         const generatedSignature = crypto
             .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
             .update(`${orderId}|${paymentId}`)
@@ -34,7 +29,7 @@ const paymentService = {
             orderId,
             paymentId,
             signature,
-            status: 'completed'
+            status: 'completed',
         });
 
         return payment;
@@ -44,5 +39,7 @@ const paymentService = {
         return Payment.find({ user: userId })
             .populate('event', 'title date')
             .sort({ createdAt: -1 });
-    }
+    },
 };
+
+module.exports = paymentService;

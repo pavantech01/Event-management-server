@@ -3,9 +3,9 @@ const catchAsync = require('../utils/catchAsync');
 
 const paymentController = {
     createOrder: catchAsync(async (req, res) => {
-        const { eventId, amount } = req.body;
+        const { eventId, amount, address } = req.body; // Add address here
         const userId = req.user.id;
-        const order = await paymentService.createOrder(eventId, amount, userId);
+        const order = await paymentService.createOrder(eventId, amount, userId, address); // Pass address
         res.status(201).json(order);
     }),
 
@@ -22,4 +22,4 @@ const paymentController = {
     })
 };
 
-module.exports = {paymentController};
+module.exports = { paymentController };
